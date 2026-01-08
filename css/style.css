@@ -8,7 +8,7 @@
   --font:"GarMa","나눔손글씨 가람연꽃","Nanum GarMaYeonGgoc",system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
 
   --ink: rgba(35,24,12,0.94);
-  --line: rgba(92,66,30,0.24);
+  --line: rgba(92,66,30,0.22);
   --shadow: rgba(0,0,0,0.30);
 
   --btnA: rgba(236,203,124,0.98);
@@ -19,13 +19,18 @@
   --paperA: rgba(255,252,246,0.97);
   --paperB: rgba(244,234,219,0.97);
 
-  --envRadius: 30px;
+  --envRadius: 32px;
 
   --envLetter: #E3C788;
+
+  /* 안감/입구면/플랩 밝기 관계:
+     lining(가장 진함) < mouth(진한 흰색) < flap(가장 밝음) */
   --envLining: #EADFCC;
   --envMouth:  #F1E9DB;
-  --envFlap:   #F7F1E7;
+  --envFlapTop:#F7F1E7;
+  --envFlapBot:rgba(222,206,186,1);
 
+  /* 편지지 노출량(봉투 밖으로 나오는 비율) */
   --letterOut: 45%;
 }
 
@@ -97,18 +102,18 @@ body{ font-family:var(--font); color:var(--ink); }
 .btn:active{ transform: translateY(1px); box-shadow:0 7px 16px rgba(0,0,0,0.16); }
 
 /* =========================
-   Envelope
+   ENVELOPE (Stable)
    ========================= */
 .envelope{
   width:min(360px, 84vw);
   aspect-ratio:4/3;
   position:relative;
-  perspective:900px;
+  perspective:1000px;
   filter: drop-shadow(0 14px 30px rgba(0,0,0,0.22));
   isolation:isolate;
 }
 
-/* back */
+/* back body */
 .env-back{
   position:absolute; inset:0;
   border-radius:var(--envRadius);
@@ -117,70 +122,71 @@ body{ font-family:var(--font); color:var(--ink); }
   z-index:1;
 }
 
-/* letter wrap = “입구 바로 아래” 기준 영역 */
-.env-letterWrap{
-  position:absolute;
-  left:0; right:0;
-  top:18%;
-  bottom:0;
-  z-index:2;
-  pointer-events:none;
-}
-
-/* letter: 조금 더 작게(폭/높이 감소) */
-.env-letter{
-  position:absolute;
-  left:4%;
-  right:4%;
-  top:6%;
-  height:92%;
-  border-radius:14px;
-  border:1px solid rgba(92,66,30,0.22);
-  background: var(--envLetter);
-  opacity:0;
-
-  transform: translateY(52%);
-  transition: transform 860ms ease, opacity 180ms ease;
-}
-
-/* lining: 내부 바닥(더 어두운 안감) */
-.env-lining{
+/* inner lining (deeper) */
+.env-inner{
   position:absolute;
   left:0; right:0;
   top:18%;
   height:54%;
   border-radius:0 0 var(--envRadius) var(--envRadius);
-  background: linear-gradient(180deg, var(--envLining), rgba(234,223,204,0.0));
+  background: linear-gradient(180deg, var(--envLining), rgba(234,223,204,0));
   z-index:2;
   pointer-events:none;
 }
 
-/* mouth: 플랩 뒤에 보이는 “V로 파인 입구면” */
+/* mouth panel with V-notch (visible when flap opens) */
 .env-mouth{
   position:absolute;
   left:0; right:0;
   top:18%;
-  height:44%;
-  border-radius:var(--envRadius) var(--envRadius) 0 0;
+  height:50%;
   background:
-    radial-gradient(circle at 50% 12%, rgba(255,255,255,0.30), transparent 55%),
-    linear-gradient(180deg, var(--envMouth), rgba(241,233,219,0.0));
+    radial-gradient(circle at 50% 10%, rgba(255,255,255,0.28), transparent 58%),
+    linear-gradient(180deg, var(--envMouth), rgba(241,233,219,0));
   z-index:3;
   pointer-events:none;
 
-  /* 위쪽이 V자로 파여 보이도록(입구 노치) */
+  /* 아래쪽 경계가 V로 파여있는 형태(플랩 열리면 확실히 보임) */
   clip-path: polygon(
     0 0,
     100% 0,
-    100% 54%,
-    62% 54%,
-    50% 72%,
-    38% 54%,
-    0 54%
+    100% 60%,
+    62% 60%,
+    50% 78%,
+    38% 60%,
+    0 60%
   );
 
-  /* 경계선이 깨져 보이지 않게 아주 약한 인셋 */
-  box-shadow: inset 0 -1px 0 rgba(92,66,30,0.12);
+  box-shadow: inset 0 -1px 0 rgba(92,66,30,0.10);
+}
+
+/* letter mask: 봉투 내부에서만 시작/이동 (아래에서 나타나는 느낌 제거) */
+.env-letterMask{
+  position:absolute;
+  left:0; right:0;
+  top:18%;
+  bottom:0;
+  overflow:hidden;
+  border-radius:0 0 var(--envRadius) var(--envRadius);
+  z-index:4;
+  pointer-events:none;
+}
+
+/* letter: size 조금 작게 */
+.env-letter{
+  position:absolute;
+  left:5%;
+  right:5%;
+  top:6%;
+  height:90%;
+  border-radius:14px;
+  border:1px solid rgba(92,66,30,0.22);
+  background: var(--envLetter);
+  opacity:0;
+
+  /* 닫힘: 입구 바로 아래에 숨김(“아래에서 시작” 제거) */
+  transform: translateY(42%);
+  transition: transform 860ms ease, opacity 180ms ease;
 }
 
 /* front pocket */
@@ -191,11 +197,11 @@ body{ font-family:var(--font); color:var(--ink); }
   border-radius:0 0 var(--envRadius) var(--envRadius);
   background:linear-gradient(180deg, rgba(248,241,232,1), rgba(230,216,198,1));
   border-top:1px solid rgba(92,66,30,0.18);
-  z-index:4;
+  z-index:6;
   pointer-events:none;
 }
 
-/* V 포인트 */
+/* pocket fold V */
 .env-frontPocket::after{
   content:"";
   position:absolute; left:0; right:0; top:-1px;
@@ -205,7 +211,7 @@ body{ font-family:var(--font); color:var(--ink); }
   pointer-events:none;
 }
 
-/* flap (기존과 동일 계열, 색만 변수로 통일) */
+/* flap */
 .env-flap{
   position:absolute;
   left:0; right:0; top:0;
@@ -213,27 +219,29 @@ body{ font-family:var(--font); color:var(--ink); }
   transform-origin:50% 0%;
   transform: rotateX(0deg);
   transition: transform 520ms ease;
-  background:linear-gradient(180deg, var(--envFlap), rgba(222,206,186,1));
+  background:linear-gradient(180deg, var(--envFlapTop), var(--envFlapBot));
   border:1px solid rgba(92,66,30,0.22);
   border-bottom:none;
   border-radius:var(--envRadius) var(--envRadius) 0 0;
-  z-index:5;
+  z-index:7;
   pointer-events:none;
   clip-path: polygon(0 0, 100% 0, 50% 82%);
+  backface-visibility:hidden;
 }
 
+/* open */
 .envelope.is-opening .env-flap{
   transform: rotateX(-165deg);
 }
 
-/* open letter: 45%만 밖으로 */
+/* open: letter rises “45% only” from its own box */
 .envelope.is-opening .env-letter{
   opacity:1;
   transform: translateY(calc(-1 * var(--letterOut)));
 }
 
 /* =========================
-   Modal
+   MODAL
    ========================= */
 .modal{ position:fixed; inset:0; display:none; z-index:30; }
 .modal.is-open{ display:block; }
