@@ -18,8 +18,6 @@
 
   --paperA: rgba(255, 252, 246, 0.97);
   --paperB: rgba(244, 234, 219, 0.97);
-
-  --envLetter: #C5A67A;
 }
 
 *{ box-sizing:border-box; }
@@ -183,27 +181,23 @@ body{ font-family:var(--font); color:var(--ink); }
   height:78%;
   border-radius:12px;
   border:1px solid rgba(92,66,30,0.18);
-  background: var(--envLetter);
+  background:linear-gradient(180deg, rgba(255,252,246,0.94), rgba(244,234,219,0.94));
   transform: translateY(34%);
   opacity:0;
-  transition: transform 680ms ease, opacity 260ms ease;
+  transition: transform 620ms ease, opacity 260ms ease;
   pointer-events:none;
 }
 
 .envelope.is-opening .env-flap{ transform: rotateX(-165deg); }
+.envelope.is-opening .env-letter{ transform: translateY(-10%); opacity:1; }
 
-/* 더 위로 올라오게: -10% -> -22% */
-.envelope.is-opening .env-letter{
-  transform: translateY(-22%);
-  opacity:1;
-}
-
-/* Modal base */
+/* Modal */
 .modal{
   position:fixed; inset:0;
   display:none;
   z-index:30;
 }
+
 .modal.is-open{ display:block; }
 
 .backdrop{
@@ -212,9 +206,7 @@ body{ font-family:var(--font); color:var(--ink); }
   opacity:0;
   transition: opacity 220ms ease;
 }
-.modal.is-open .backdrop{ opacity:1; }
 
-/* 공용 패널 */
 .panel{
   position:relative;
   width:min(900px, 94vw);
@@ -228,9 +220,10 @@ body{ font-family:var(--font); color:var(--ink); }
   opacity:0;
   transition: transform 240ms ease, opacity 240ms ease;
 }
+
+.modal.is-open .backdrop{ opacity:1; }
 .modal.is-open .panel{ opacity:1; transform: translateY(0) scale(1); }
 
-/* 기본 닫기 버튼(배경 있음) */
 .close{
   position:absolute; top:10px; right:12px;
   border:1px solid rgba(60,40,15,0.22);
@@ -240,68 +233,27 @@ body{ font-family:var(--font); color:var(--ink); }
   font-family:var(--font);
   font-size:16px;
   padding:6px 10px;
-  z-index:5;
-  color:#000;
+  z-index:2;
 }
 
-/* 메인 편지용: 배경 없는 X, 검정색, 바깥쪽 */
-.closeBare{
-  appearance:none;
-  -webkit-appearance:none;
-  border:none;
-  background:transparent;
-  padding:8px 10px;
-  cursor:pointer;
-  font-family:var(--font);
-  font-size:20px;
-  line-height:1;
-  color:#000;
-  text-decoration:none;
-  -webkit-tap-highlight-color: transparent;
-}
-.closeBare:visited{ color:#000; }
-.closeBare:focus{ outline:none; }
-.closeBare:active{ color:#000; }
-
-.closeOutside{
-  position:absolute;
-  top:14px;
-  right:16px;
-  z-index:60;
-}
-
-/* 메인 편지: 패널/흰 배경 제거, 이미지 뷰어만 */
-.paperViewport{
-  position:relative;
-  width:min(980px, 94vw);
-  margin:6vh auto 0;
-  background:transparent;
-  border:none;
-  box-shadow:none;
-  transform: translateY(8px) scale(0.985);
-  opacity:0;
-  transition: transform 240ms ease, opacity 240ms ease;
-}
-.modal.is-open .paperViewport{
-  opacity:1;
-  transform: translateY(0) scale(1);
-}
+/* Main letter image viewer */
+.paperPanel{ background:linear-gradient(180deg, var(--paperA), var(--paperB)); }
 
 .paperScroll{
-  max-height: 86vh;
+  padding:16px;
+  max-height: 82vh;
   overflow:auto;
   -webkit-overflow-scrolling: touch;
-  padding:0;
-  background:transparent;
 }
 
 .paperImg{
   width:100%;
   height:auto;
   display:block;
-  border-radius:0;
-  border:none;
-  box-shadow:none;
+  border-radius:14px;
+  border:1px solid rgba(92,66,30,0.18);
+  box-shadow:0 10px 24px rgba(0,0,0,0.14);
+  background:rgba(255,255,255,0.35);
 }
 
 /* Name modal */
@@ -350,11 +302,26 @@ body{ font-family:var(--font); color:var(--ink); }
   pointer-events:none;
 }
 
-/* 제목이 테이프보다 앞으로 */
-.replyTitleTop{
-  position:relative;
-  z-index:3;
-  margin-top:18px;
+.replyStamp{
+  position:absolute;
+  width:74px; height:74px;
+  top:14px; right:16px;
+  border-radius:14px;
+  border:1px dashed rgba(80,55,25,0.42);
+  background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35), rgba(120,80,30,0.14));
+  z-index:1;
+  pointer-events:none;
+}
+
+.replyStamp::after{
+  content:"THANKS";
+  position:absolute; inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:12px;
+  letter-spacing:0.12em;
+  opacity:0.62;
 }
 
 .replyBody{
@@ -371,5 +338,5 @@ body{ font-family:var(--font); color:var(--ink); }
 }
 
 @media (prefers-reduced-motion: reduce){
-  .env-flap,.env-letter,.backdrop,.panel,.paperViewport{ transition:none !important; }
+  .env-flap,.env-letter,.backdrop,.panel{ transition:none !important; }
 }

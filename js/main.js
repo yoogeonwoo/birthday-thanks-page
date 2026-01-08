@@ -63,7 +63,7 @@ btnOpenLetter.addEventListener("click", () => {
   window.setTimeout(() => {
     openModal(modalLetter);
     isAnimating = false;
-  }, 720);
+  }, 680);
 });
 
 btnOpenInbox.addEventListener("click", async () => {
