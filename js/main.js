@@ -43,7 +43,7 @@ document.addEventListener("click", (e) => {
 const loadReplies = async () => {
   if (repliesCache) return repliesCache;
   try {
-    const res = await fetch("./data/replies.json", { cache: "no-store" });
+    const res = await fetch("data/replies.json", { cache: "no-store" });
     if (!res.ok) { repliesCache = {}; return repliesCache; }
     const json = await res.json();
     repliesCache = (json && typeof json === "object") ? json : {};
@@ -62,10 +62,8 @@ btnOpenLetter.addEventListener("click", () => {
 
   window.setTimeout(() => {
     openModal(modalLetter);
-    const sc = document.querySelector("#modalLetter .paperScroll");
-    if (sc) sc.scrollTop = 0;
     isAnimating = false;
-  }, 780);
+  }, 720);
 });
 
 btnOpenInbox.addEventListener("click", async () => {
