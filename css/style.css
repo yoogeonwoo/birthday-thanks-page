@@ -19,17 +19,15 @@
   --paperA: rgb(255, 252, 246);
   --paperB: rgb(244, 234, 219);
 
-  /* 요청: 편지지 색상 */
+  /* 편지지 색상: 유지 */
   --letter: #E1BF72;
 
-  /* 봉투 색상(불투명):
-     - 몸체(뒤/겉표지) = 더 연한 톤
-     - 플랩 = 더 진한 톤 (색이 뒤바뀐 느낌 보정) */
-  --envBodyTop: rgb(250, 242, 229);
-  --envBodyBottom: rgb(236, 220, 195);
-
-  --envFlapTop: rgb(230, 205, 160);
-  --envFlapBottom: rgb(210, 175, 120);
+  /* 봉투: 요청 반영 */
+  --envBack: #FFFFFF;     /* 뒷 배경: 완전한 흰색 */
+  --envFlap: #EDE4D6;     /* 플랩 */
+  /* 겉표지: 현상태(연베이지 톤) 유지 */
+  --envCoverTop: rgb(250, 242, 229);
+  --envCoverBottom: rgb(236, 220, 195);
 }
 
 *{ box-sizing:border-box; }
@@ -114,9 +112,8 @@ body{ font-family:var(--font); color:var(--ink); }
 }
 
 /* =========================
-   Envelope (Rebuilt layering)
-   레이어 요구:
-   back < letter < cover < flap
+   Envelope
+   레이어: back < letter < cover < flap
    ========================= */
 
 .envelope{
@@ -127,19 +124,16 @@ body{ font-family:var(--font); color:var(--ink); }
   filter: drop-shadow(0 14px 30px rgba(0,0,0,0.22));
 }
 
-/* Back: 완전 불투명 */
+/* back: 완전 흰색 */
 .env-back{
   position:absolute; inset:0;
   border-radius:16px;
   border:1px solid rgba(92,66,30,0.28);
-  background:
-    radial-gradient(circle at 30% 25%, rgb(255,255,255) 0%, rgba(255,255,255,0) 60%),
-    radial-gradient(circle at 70% 75%, rgb(220,200,165) 0%, rgba(220,200,165,0) 62%),
-    linear-gradient(180deg, var(--envBodyTop), var(--envBodyBottom));
+  background: var(--envBack);
   z-index:1;
 }
 
-/* Letter: back보다 앞, cover보다 뒤 */
+/* letter: 현재 배치 유지(뒤보다 앞, 겉표지보다 뒤) */
 .env-letter{
   position:absolute;
   left:8%; right:8%;
@@ -155,7 +149,6 @@ body{ font-family:var(--font); color:var(--ink); }
   z-index:2;
 }
 
-/* Front wrapper */
 .env-front{
   position:absolute; inset:0;
   border-radius:16px;
@@ -164,24 +157,24 @@ body{ font-family:var(--font); color:var(--ink); }
   z-index:3;
 }
 
-/* env-cover는 "전체를 덮는 배경"이 아니라,
-   아래쪽 V 형태로 덮는 '겉표지 영역'만 그려서
-   letter가 cover 뒤에 있으면서도 위쪽에서 보이도록 함 */
+/* cover는 아래쪽 V 영역만 덮음 */
 .env-cover{
   position:absolute; inset:0;
   border-radius:16px;
   background:transparent;
 }
 
-/* 겉표지(실제 덮는 부분) + 요청: V 라인을 더 위로 */
+/* 핵심: 겉표지 V 라인을 더 위로 올림
+   - 기존보다 시작 y%와 꼭짓점 y%를 낮춰(위로) 덮는 영역을 끌어올림
+   - “플랩 접힘 V”보다 위로 올라오게(더 높은 덮개 느낌) */
 .env-cover::after{
   content:"";
   position:absolute; inset:0;
-  background:linear-gradient(180deg, var(--envBodyTop), var(--envBodyBottom));
+  background:linear-gradient(180deg, var(--envCoverTop), var(--envCoverBottom));
   clip-path: polygon(
-    0 18%,
-    50% 64%,
-    100% 18%,
+    0 12%,     /* 좌측 시작점(더 위) */
+    50% 54%,   /* V 꼭짓점(더 위) */
+    100% 12%,  /* 우측 시작점(더 위) */
     100% 100%,
     0 100%
   );
@@ -189,7 +182,7 @@ body{ font-family:var(--font); color:var(--ink); }
   pointer-events:none;
 }
 
-/* 접힘 느낌(겉표지 영역에만 얹기) */
+/* 접힘 음영도 동일하게 같은 영역에만 */
 .env-cover::before{
   content:"";
   position:absolute; inset:0;
@@ -197,9 +190,9 @@ body{ font-family:var(--font); color:var(--ink); }
     linear-gradient(135deg, rgba(92,66,30,0.18), rgba(92,66,30,0) 35%),
     linear-gradient(225deg, rgba(92,66,30,0.18), rgba(92,66,30,0) 35%);
   clip-path: polygon(
-    0 18%,
-    50% 64%,
-    100% 18%,
+    0 12%,
+    50% 54%,
+    100% 12%,
     100% 100%,
     0 100%
   );
@@ -207,7 +200,7 @@ body{ font-family:var(--font); color:var(--ink); }
   pointer-events:none;
 }
 
-/* Flap: 최상단 + 색상(몸체와 다르게, 뒤바뀐 느낌 보정) */
+/* flap: 최상단 + 색상 #EDE4D6 */
 .env-flap{
   position:absolute;
   left:0; right:0; top:0;
@@ -215,7 +208,7 @@ body{ font-family:var(--font); color:var(--ink); }
   transform-origin: 50% 0%;
   transform: rotateX(0deg);
   transition: transform 520ms ease;
-  background:linear-gradient(180deg, var(--envFlapTop), var(--envFlapBottom));
+  background: var(--envFlap);
   border:1px solid rgba(92,66,30,0.30);
   clip-path: polygon(0 0, 100% 0, 50% 82%);
   border-bottom:none;
@@ -224,9 +217,7 @@ body{ font-family:var(--font); color:var(--ink); }
   z-index:4;
 }
 
-/* Opening state:
-   - 편지지: cover보다 뒤 유지(z-index 2 유지), 하지만 위로 올라와서 V 위에서 보이게 함
-   - 플랩: 앞으로 젖힘 */
+/* Opening */
 .envelope.is-opening .env-flap{ transform: rotateX(-165deg); }
 .envelope.is-opening .env-letter{
   transform: translateY(-10%);
@@ -239,7 +230,6 @@ body{ font-family:var(--font); color:var(--ink); }
   display:none;
   z-index:30;
 }
-
 .modal.is-open{ display:block; }
 
 .backdrop{
