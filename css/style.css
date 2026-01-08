@@ -30,8 +30,14 @@
   --envCoverTop: rgb(252, 247, 238);
   --envCoverBottom: rgb(244, 235, 222);
 
-  /* 3D 플랩 두께(작게 유지) */
+  /* 3D 플랩 두께 */
   --flapThickness: 2px;
+
+  /* ✅ 힌지(축) 갭 방지용: 플랩을 윗변에 얼마나 더 겹칠지 */
+  --hingeOverlap: 2px;
+
+  /* ✅ 힌지 실(seam) 커버 높이 */
+  --hingeSealHeight: 3px;
 }
 
 *{ box-sizing:border-box; }
@@ -165,7 +171,6 @@ body{ font-family:var(--font); color:var(--ink); }
   z-index:3;
 }
 
-/* 겉표지 */
 .env-cover{
   position:absolute; inset:0;
   border-radius:16px;
@@ -193,25 +198,49 @@ body{ font-family:var(--font); color:var(--ink); }
 }
 
 /* =========================
-   ✅ 3D Flap (열려도 ▲ 유지)
-   - 회전축: 가장 긴 변(윗변)
-   - 뒷면: "미리 뒤집힌 삼각형"을 넣어서 열렸을 때 ▲로 보이게 함
+   ✅ 3D Flap + 힌지 갭 방지
    ========================= */
 
 .env-flap{
   position:absolute;
-  left:0; right:0; top:0;
-  height:72%;
+  left:0; right:0;
+  /* ✅ 윗변 쪽으로 살짝 “겹치기” */
+  top: calc(var(--hingeOverlap) * -1);
+  /* ✅ 겹친 만큼 높이도 늘려 모양 유지 */
+  height: calc(72% + var(--hingeOverlap));
 
   z-index:6;
   pointer-events:none;
 
+  /* 축은 윗변 */
   transform-origin: 50% 0%;
+
   transform: rotateX(0deg);
   transition: transform 520ms ease;
 
   transform-style: preserve-3d;
   will-change: transform;
+}
+
+/* ✅ 힌지 실(seam) 커버: 회전 중 미세 틈 가림 */
+.env-flap::before{
+  content:"";
+  position:absolute;
+  left:0; right:0;
+  top: calc(var(--hingeOverlap) - 1px);
+  height: var(--hingeSealHeight);
+
+  background: var(--envFlap);
+  border-left:1px solid rgba(92,66,30,0.28);
+  border-right:1px solid rgba(92,66,30,0.28);
+
+  /* 봉투 윗변 라인과 자연스럽게 */
+  border-top:1px solid rgba(92,66,30,0.28);
+  border-radius:16px 16px 0 0;
+
+  /* seam은 항상 위 */
+  transform: translateZ(6px);
+  pointer-events:none;
 }
 
 /* 공통 면 */
@@ -233,9 +262,7 @@ body{ font-family:var(--font); color:var(--ink); }
   clip-path: polygon(0 0, 100% 0, 50% 78%);
 }
 
-/* 뒷면(열림): ✅ 열렸을 때도 ▲로 보이도록 "반전 삼각형"을 사용
-   - 면 자체는 뒤를 보게 rotateX(180)
-   - clip-path는 꼭짓점이 위로 오도록 반전 배치 */
+/* 뒷면(열림): 열렸을 때도 ▲로 보이도록 반전 삼각형 */
 .flap-back{
   transform: rotateX(180deg) translateZ(calc(var(--flapThickness) / 2));
   clip-path: polygon(0 78%, 100% 78%, 50% 0);
