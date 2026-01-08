@@ -1,418 +1,94 @@
-@font-face{
-  font-family:"GarMa";
-  src:url("../assets/fonts/NanumGarMaYeonGgoc.ttf") format("truetype");
-  font-display:swap;
-}
+const $ = (s) => document.querySelector(s);
 
-:root{
-  --font: "GarMa","나눔손글씨 가람연꽃","Nanum GarMaYeonGgoc",system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+const envelope = $("#envelope");
 
-  --ink: rgba(35, 24, 12, 0.94);
-  --line: rgba(92, 66, 30, 0.30);
-  --shadow: rgba(0,0,0,0.30);
+const modalLetter = $("#modalLetter");
+const modalName = $("#modalName");
+const modalReply = $("#modalReply");
 
-  --btnA: rgba(236, 203, 124, 0.98);
-  --btnB: rgba(214, 178, 98, 0.98);
-  --btnC: rgba(229, 194, 116, 0.98);
-  --btnD: rgba(200, 160, 80, 0.98);
+const btnOpenLetter = $("#btnOpenLetter");
+const btnOpenInbox = $("#btnOpenInbox");
+const btnCheckName = $("#btnCheckName");
 
-  --paperA: rgb(255, 252, 246);
-  --paperB: rgb(244, 234, 219);
+const nameInput = $("#nameInput");
+const replyTitle = $("#replyTitle");
+const replyBody = $("#replyBody");
 
-  /* 편지지 색상 유지 */
-  --letter: #E1BF72;
+let repliesCache = null;
+let isAnimating = false;
 
-  /* 봉투 색상 */
-  --envBack: #FFFFFF;        /* 완전 흰색 */
-  --envFlap: #EDE4D6;        /* 플랩 */
-  --envCoverTop: rgb(252, 247, 238);   /* 겉표지(연함) */
-  --envCoverBottom: rgb(244, 235, 222);
+const openModal = (m) => {
+  m.classList.add("is-open");
+  m.setAttribute("aria-hidden", "false");
+};
 
-  /* 틈 메우기용(플랩/겉표지 사이 라이너) */
-  --liner: rgb(248, 242, 232);
-}
+const closeModal = (m) => {
+  m.classList.remove("is-open");
+  m.setAttribute("aria-hidden", "true");
+};
 
-*{ box-sizing:border-box; }
-html,body{ height:100%; margin:0; }
-body{ font-family:var(--font); color:var(--ink); }
+document.addEventListener("click", (e) => {
+  const key = e.target?.dataset?.close;
+  if (!key) return;
 
-.app{
-  position:relative;
-  min-height:100vh;
-  overflow:hidden;
-}
+  if (key === "modalLetter") {
+    closeModal(modalLetter);
+    envelope.classList.remove("is-opening");
+    isAnimating = false;
+  }
+  if (key === "modalName") closeModal(modalName);
+  if (key === "modalReply") closeModal(modalReply);
+});
 
-.bg{
-  position:absolute; inset:0;
-  background:url("../assets/bg.jpg") center/cover no-repeat;
-  transform:scale(1.02);
-  filter:saturate(0.98) contrast(0.98) brightness(0.98);
-  z-index:0;
-}
+const loadReplies = async () => {
+  if (repliesCache) return repliesCache;
+  try {
+    const res = await fetch("data/replies.json", { cache: "no-store" });
+    if (!res.ok) { repliesCache = {}; return repliesCache; }
+    const json = await res.json();
+    repliesCache = (json && typeof json === "object") ? json : {};
+    return repliesCache;
+  } catch {
+    repliesCache = {};
+    return repliesCache;
+  }
+};
 
-.grain{
-  position:absolute; inset:0;
-  pointer-events:none;
-  opacity:0.14;
-  background-image:
-    repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 3px),
-    repeating-linear-gradient(90deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 1px, transparent 1px, transparent 4px);
-  mix-blend-mode:overlay;
-  z-index:1;
-}
+btnOpenLetter.addEventListener("click", () => {
+  if (isAnimating) return;
+  isAnimating = true;
 
-.home{
-  position:relative;
-  z-index:2;
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:18px;
-  padding:24px;
-}
+  envelope.classList.add("is-opening");
 
-.actions{
-  width:min(360px, 86vw);
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
+  window.setTimeout(() => {
+    openModal(modalLetter);
+    isAnimating = false;
+  }, 680);
+});
 
-.btn{
-  width:100%;
-  padding:12px 14px;
-  border-radius:999px;
-  border:1px solid rgba(92,66,30,0.40);
-  cursor:pointer;
-  font-family:var(--font);
-  font-size:18px;
-  letter-spacing:0.02em;
-  color:rgba(20,14,8,0.92);
-  box-shadow:0 10px 20px rgba(0,0,0,0.16);
-  position:relative;
-  overflow:hidden;
-  user-select:none;
-  -webkit-tap-highlight-color: transparent;
-}
+btnOpenInbox.addEventListener("click", async () => {
+  await loadReplies();
+  nameInput.value = "";
+  openModal(modalName);
+  try { nameInput.focus({ preventScroll: true }); } catch {}
+});
 
-.btn::after{
-  content:"";
-  position:absolute; inset:-40%;
-  background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.28), transparent 58%);
-  opacity:0.75;
-  pointer-events:none;
-}
+const tryOpenReply = async () => {
+  const name = nameInput.value;
+  if (!name) return;
 
-.btn-primary{ background:linear-gradient(180deg, var(--btnA), var(--btnB)); }
-.btn-secondary{ background:linear-gradient(180deg, var(--btnC), var(--btnD)); }
+  const data = await loadReplies();
+  const msg = data[name];
+  if (!msg) return;
 
-.btn:active{
-  transform: translateY(1px);
-  box-shadow:0 7px 16px rgba(0,0,0,0.16);
-}
+  closeModal(modalName);
+  replyTitle.textContent = `${name}님께`;
+  replyBody.textContent = String(msg);
+  openModal(modalReply);
+};
 
-/* =========================
-   Envelope 구조 변경:
-   - env-shell: 봉투 껍데기(클리핑)
-   - env-letter: 껍데기 밖(잘림 방지)
-   ========================= */
+btnCheckName.addEventListener("click", () => { void tryOpenReply(); });
 
-.envelope{
-  width:min(300px, 74vw);
-  aspect-ratio: 4 / 3;
-  position:relative;
-  perspective: 900px;
-  filter: drop-shadow(0 14px 30px rgba(0,0,0,0.22));
-  overflow: visible; /* 편지지가 밖으로 나올 수 있게 */
-}
-
-/* 봉투 껍데기: 여기만 클리핑 */
-.env-shell{
-  position:absolute; inset:0;
-  border-radius:16px;
-  overflow:hidden;
-}
-
-.env-back{
-  position:absolute; inset:0;
-  border-radius:16px;
-  border:1px solid rgba(92,66,30,0.28);
-  background: var(--envBack);
-  z-index:1;
-}
-
-.env-front{
-  position:absolute; inset:0;
-  border-radius:16px;
-  overflow:hidden;
-  pointer-events:none;
-  z-index:3;
-}
-
-.env-cover{
-  position:absolute; inset:0;
-  border-radius:16px;
-  background:transparent;
-}
-
-/* 겉표지 V(틈 최소화 위해 조금 위로) */
-.env-cover::after{
-  content:"";
-  position:absolute; inset:0;
-  background:linear-gradient(180deg, var(--envCoverTop), var(--envCoverBottom));
-  clip-path: polygon(
-    0 8%,
-    50% 50%,
-    100% 8%,
-    100% 100%,
-    0 100%
-  );
-  border-top:1px solid rgba(92,66,30,0.18);
-  pointer-events:none;
-}
-
-.env-cover::before{
-  content:"";
-  position:absolute; inset:0;
-  background:
-    linear-gradient(135deg, rgba(92,66,30,0.12), rgba(92,66,30,0) 35%),
-    linear-gradient(225deg, rgba(92,66,30,0.12), rgba(92,66,30,0) 35%);
-  clip-path: polygon(
-    0 8%,
-    50% 50%,
-    100% 8%,
-    100% 100%,
-    0 100%
-  );
-  opacity:0.55;
-  pointer-events:none;
-}
-
-/* 편지지: 봉투 안에서 시작 + 밖으로 50% 정도 나오도록 */
-.env-letter{
-  position:absolute;
-  left:8%; right:8%;
-  /* 껍데기 기준으로 봉투 내부에서 시작하도록, 바닥 기준을 올림 */
-  bottom:14%;
-  height:78%;
-  border-radius:12px;
-  border:1px solid rgba(92,66,30,0.22);
-  background:linear-gradient(180deg, var(--letter), var(--letter));
-  pointer-events:none;
-
-  /* 시작 위치: “봉투 안” (아래로 과도하게 안 내림) */
-  transform: translateY(18%);
-  opacity:0;
-
-  transition: transform 620ms ease, opacity 260ms ease;
-  z-index:2; /* back보다 앞, cover보다 뒤 */
-}
-
-/* 플랩: 항상 최상단, 열릴 때 “사라지지 않고 위로 올라감” */
-.env-flap{
-  position:absolute;
-  left:-6%; right:-6%; top:-2%;   /* 좌우를 바깥으로 확장 => 흰색 틈 방지 */
-  height:78%;                     /* 플랩 크기 증가 */
-  transform-origin: 50% 0%;
-  transform: translateY(0) rotateX(0deg);
-  transition: transform 520ms ease;
-
-  background: var(--envFlap);
-  border:1px solid rgba(92,66,30,0.28);
-  border-bottom:none;
-  border-radius:18px 18px 0 0;
-
-  /* 꼭짓점 각도 넓게(덜 뾰족): 꼭짓점 y를 너무 내리지 않음 */
-  clip-path: polygon(-2% 0, 102% 0, 50% 80%);
-  pointer-events:none;
-  z-index:4;
-}
-
-/* 플랩 아래 틈 메우기(사진에서 동그라미 친 흰 부분 커버)
-   - 플랩 내부에 양쪽 삼각 라이너를 추가해 back(흰색)이 보이는 걸 방지 */
-.env-flap::before,
-.env-flap::after{
-  content:"";
-  position:absolute;
-  top:10%;
-  width:56%;
-  height:70%;
-  background: var(--liner);
-  opacity:0.95;
-  pointer-events:none;
-}
-
-.env-flap::before{
-  left:-6%;
-  clip-path: polygon(0 0, 100% 0, 40% 100%);
-  transform: rotate(-1deg);
-}
-
-.env-flap::after{
-  right:-6%;
-  clip-path: polygon(0 0, 100% 0, 60% 100%);
-  transform: rotate(1deg);
-}
-
-/* Opening state
-   - 플랩: 위로 올라가면서 살짝 젖힘(사라지지 않음)
-   - 편지지: 봉투 밖으로 50% 정도 나오게 (-52% 근처) */
-.envelope.is-opening .env-flap{
-  transform: translateY(-34%) rotateX(-55deg);
-}
-
-.envelope.is-opening .env-letter{
-  transform: translateY(-52%);
-  opacity:1;
-}
-
-/* Modal */
-.modal{
-  position:fixed; inset:0;
-  display:none;
-  z-index:30;
-}
-.modal.is-open{ display:block; }
-
-.backdrop{
-  position:absolute; inset:0;
-  background:rgba(0,0,0,0.50);
-  opacity:0;
-  transition: opacity 220ms ease;
-}
-
-.panel{
-  position:relative;
-  width:min(900px, 94vw);
-  margin:6vh auto 0;
-  border-radius:18px;
-  border:1px solid var(--line);
-  box-shadow:0 18px 44px var(--shadow);
-  overflow:hidden;
-  background:linear-gradient(180deg, var(--paperA), var(--paperB));
-  transform: translateY(8px) scale(0.985);
-  opacity:0;
-  transition: transform 240ms ease, opacity 240ms ease;
-}
-
-.modal.is-open .backdrop{ opacity:1; }
-.modal.is-open .panel{ opacity:1; transform: translateY(0) scale(1); }
-
-.close{
-  position:absolute; top:10px; right:12px;
-  border:1px solid rgba(60,40,15,0.22);
-  background:rgba(255,255,255,0.58);
-  border-radius:10px;
-  cursor:pointer;
-  font-family:var(--font);
-  font-size:16px;
-  padding:6px 10px;
-  z-index:2;
-}
-
-/* Main letter image viewer */
-.paperPanel{ background:linear-gradient(180deg, var(--paperA), var(--paperB)); }
-
-.paperScroll{
-  padding:16px;
-  max-height: 82vh;
-  overflow:auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.paperImg{
-  width:100%;
-  height:auto;
-  display:block;
-  border-radius:14px;
-  border:1px solid rgba(92,66,30,0.18);
-  box-shadow:0 10px 24px rgba(0,0,0,0.14);
-  background:rgba(255,255,255,0.35);
-}
-
-/* Name modal */
-.cardPanel{ padding:18px 16px 20px; }
-
-.title{
-  margin:18px 18px 10px;
-  font-size:26px;
-}
-
-.form{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  padding:0 18px 18px;
-}
-
-.input{
-  flex:1;
-  padding:12px 12px;
-  border-radius:12px;
-  border:1px solid rgba(80,55,25,0.34);
-  font-family:var(--font);
-  font-size:18px;
-  background:rgba(255,255,255,0.76);
-  outline:none;
-}
-
-/* Reply */
-.replyPanel{ background:linear-gradient(180deg, rgb(255,252,246), rgb(244,234,219)); }
-
-.replyFrame{
-  position:relative;
-  padding:18px 16px 22px;
-}
-
-.replyTape{
-  position:absolute;
-  width:150px; height:40px;
-  top:14px; left:18px;
-  transform:rotate(-7deg);
-  border:1px solid rgba(120,90,40,0.22);
-  background:linear-gradient(180deg, rgba(232,216,170,0.72), rgba(204,184,130,0.64));
-  opacity:0.86;
-  z-index:1;
-  pointer-events:none;
-}
-
-.replyStamp{
-  position:absolute;
-  width:74px; height:74px;
-  top:14px; right:16px;
-  border-radius:14px;
-  border:1px dashed rgba(80,55,25,0.42);
-  background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35), rgba(120,80,30,0.14));
-  z-index:1;
-  pointer-events:none;
-}
-
-.replyStamp::after{
-  content:"THANKS";
-  position:absolute; inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:12px;
-  letter-spacing:0.12em;
-  opacity:0.62;
-}
-
-.replyBody{
-  margin:0 18px 8px;
-  font-size:18px;
-  line-height:1.8;
-  white-space:pre-wrap;
-}
-
-@media (max-width:480px){
-  .title{ font-size:23px; }
-  .btn,.input,.replyBody{ font-size:17px; }
-  .form{ flex-direction:column; align-items:stretch; }
-}
-
-@media (prefers-reduced-motion: reduce){
-  .env-flap,.env-letter,.backdrop,.panel{ transition:none !important; }
-}
+nameInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") void tryOpenReply();
+});
