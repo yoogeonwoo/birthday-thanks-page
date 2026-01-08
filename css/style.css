@@ -26,7 +26,7 @@
   --envBack: #FFFFFF;
   --envFlap: #EDE4D6;
 
-  /* 겉표지 */
+  /* 겉표지(연한 톤 유지) */
   --envCoverTop: rgb(252, 247, 238);
   --envCoverBottom: rgb(244, 235, 222);
 }
@@ -114,9 +114,7 @@ body{ font-family:var(--font); color:var(--ink); }
 
 /* =========================
    Envelope
-   - 플랩: 삼각형 "가장 긴 변(윗변)"을 축으로 180도 회전
-   - 겉표지가 플랩을 가리지 않도록: 플랩 z-index 최상단
-   - 봉투가 잘라서 숨기지 않도록: envelope overflow visible
+   - 플랩: 180도 회전 후에도 "정방향 삼각형"으로 보이게 보정
    ========================= */
 
 .envelope{
@@ -165,6 +163,7 @@ body{ font-family:var(--font); color:var(--ink); }
   z-index:3;
 }
 
+/* 겉표지 */
 .env-cover{
   position:absolute; inset:0;
   border-radius:16px;
@@ -175,7 +174,13 @@ body{ font-family:var(--font); color:var(--ink); }
   content:"";
   position:absolute; inset:0;
   background:linear-gradient(180deg, var(--envCoverTop), var(--envCoverBottom));
-  clip-path: polygon(0 9%, 50% 52%, 100% 9%, 100% 100%, 0 100%);
+  clip-path: polygon(
+    0 9%,
+    50% 52%,
+    100% 9%,
+    100% 100%,
+    0 100%
+  );
   border-top:1px solid rgba(92,66,30,0.20);
   pointer-events:none;
 }
@@ -186,12 +191,18 @@ body{ font-family:var(--font); color:var(--ink); }
   background:
     linear-gradient(135deg, rgba(92,66,30,0.14), rgba(92,66,30,0) 35%),
     linear-gradient(225deg, rgba(92,66,30,0.14), rgba(92,66,30,0) 35%);
-  clip-path: polygon(0 9%, 50% 52%, 100% 9%, 100% 100%, 0 100%);
+  clip-path: polygon(
+    0 9%,
+    50% 52%,
+    100% 9%,
+    100% 100%,
+    0 100%
+  );
   opacity:0.55;
   pointer-events:none;
 }
 
-/* 플랩: 가장 긴 변(윗변)을 축으로 180도 회전 */
+/* 플랩: 항상 최상단 */
 .env-flap{
   position:absolute;
   left:0; right:0; top:0;
@@ -200,7 +211,7 @@ body{ font-family:var(--font); color:var(--ink); }
   z-index:6;
   pointer-events:none;
 
-  /* 핵심: 축을 윗변으로(원래처럼) */
+  /* 가장 긴 변(윗변)을 축으로 */
   transform-origin: 50% 0%;
 
   transform: rotateX(0deg);
@@ -210,7 +221,7 @@ body{ font-family:var(--font); color:var(--ink); }
   will-change: transform;
 }
 
-/* 플랩 앞면(닫힌 상태에서 보이는 면) */
+/* 플랩 앞면(닫힌 상태) */
 .env-flap::before{
   content:"";
   position:absolute; inset:0;
@@ -222,7 +233,9 @@ body{ font-family:var(--font); color:var(--ink); }
   backface-visibility: hidden;
 }
 
-/* 플랩 뒷면(열렸을 때 보이는 면) */
+/* 플랩 뒷면(열린 상태)
+   - rotateX(180)으로 뒷면을 만들고,
+   - rotateY(180)으로 방향을 한 번 더 보정해서 "정방향 삼각형"으로 보이게 */
 .env-flap::after{
   content:"";
   position:absolute; inset:0;
@@ -230,8 +243,10 @@ body{ font-family:var(--font); color:var(--ink); }
   border:1px solid rgba(92,66,30,0.28);
   border-bottom:none;
   border-radius:16px 16px 0 0;
+
+  transform: rotateX(180deg) rotateY(180deg);
+
   clip-path: polygon(0 0, 100% 0, 50% 78%);
-  transform: rotateX(180deg);
   backface-visibility: hidden;
 }
 
