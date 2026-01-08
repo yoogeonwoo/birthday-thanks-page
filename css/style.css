@@ -27,12 +27,11 @@
   --envCoverTop: rgb(252, 247, 238);
   --envCoverBottom: rgb(244, 235, 222);
 
-  /* 플랩 두께 */
-  --flapThickness: 0px;
+  /* ✅ “뜬 공간” 제거용: 열릴 때 겉표지를 얼마나 아래로 내릴지 */
+  --frontDropOnOpen: 12px;
 
-  /* ✅ 3D 합성에서 레이어를 “확정”시키는 Z 깊이 */
-  --zFront: 40px;   /* 플랩(앞) */
-  --zBack: -40px;   /* 겉표지(뒤) */
+  /* 플랩 두께는 0으로(떠보임 원인 제거) */
+  --flapThickness: 0px;
 }
 
 *{ box-sizing:border-box; }
@@ -131,6 +130,9 @@ body{ font-family:var(--font); color:var(--ink); }
   filter: drop-shadow(0 14px 30px rgba(0,0,0,0.22));
   overflow: visible;
   border-radius:16px;
+
+  /* ✅ 합성 안정화 */
+  isolation:isolate;
 }
 
 .env-back{
@@ -139,7 +141,6 @@ body{ font-family:var(--font); color:var(--ink); }
   border:1px solid rgba(92,66,30,0.28);
   background: var(--envBack);
   z-index:1;
-  transform: translateZ(-80px); /* 깊이 고정(뒤) */
 }
 
 .env-letter{
@@ -151,7 +152,7 @@ body{ font-family:var(--font); color:var(--ink); }
   border:1px solid rgba(92,66,30,0.22);
   background:linear-gradient(180deg, var(--letter), var(--letter));
 
-  transform: translateY(22%) translateZ(-20px); /* 겉표지보다도 아래 */
+  transform: translateY(22%);
   opacity:0;
 
   transition: transform 620ms ease, opacity 260ms ease;
@@ -159,15 +160,18 @@ body{ font-family:var(--font); color:var(--ink); }
   z-index:2;
 }
 
-/* ✅ 겉표지를 Z축으로 “확실히 뒤로” */
+/* ✅ 겉표지는 “평면 레이어”로 고정해서 3D 뒤틀림 제거 */
 .env-front{
   position:absolute; inset:0;
   border-radius:16px;
   overflow:hidden;
   pointer-events:none;
+
   z-index:3;
-  transform: translateZ(var(--zBack));
-  transform-style: preserve-3d;
+
+  transform: translateZ(0);
+  transform-style: flat;     /* 핵심 */
+  backface-visibility: hidden;
 }
 
 .env-cover{
@@ -196,21 +200,17 @@ body{ font-family:var(--font); color:var(--ink); }
   pointer-events:none;
 }
 
-/* =========================
-   Flap (항상 “위”)
-   ========================= */
-
+/* ✅ 플랩은 항상 위 */
 .env-flap{
   position:absolute;
   left:0; right:0; top:0;
   height:72%;
 
-  z-index:10;
+  z-index:5;
   pointer-events:none;
 
   transform-origin: 50% 0%;
-  /* ✅ 플랩 자체를 Z축으로 “앞”에 고정 */
-  transform: translateZ(var(--zFront)) rotateX(0deg);
+  transform: rotateX(0deg);
   transition: transform 520ms ease;
 
   transform-style: preserve-3d;
@@ -220,7 +220,6 @@ body{ font-family:var(--font); color:var(--ink); }
 .flap-face{
   position:absolute;
   inset:0;
-
   background: var(--envFlap);
   border:1px solid rgba(92,66,30,0.28);
   border-bottom:none;
@@ -240,13 +239,19 @@ body{ font-family:var(--font); color:var(--ink); }
   clip-path: polygon(0 78%, 100% 78%, 50% 0);
 }
 
-/* Opening */
+/* 열기 */
 .envelope.is-opening .env-flap{
-  transform: translateZ(var(--zFront)) rotateX(-179.95deg);
+  transform: rotateX(-179.95deg);
 }
+
 .envelope.is-opening .env-letter{
-  transform: translateY(-12%) translateZ(-20px);
+  transform: translateY(-12%);
   opacity:1;
+}
+
+/* ✅ 핵심: 열리면 겉표지를 “살짝 아래로” 내려서 공간(착시) 제거 */
+.envelope.is-opening .env-front{
+  transform: translateY(var(--frontDropOnOpen)) translateZ(0);
 }
 
 /* =========================
@@ -321,7 +326,6 @@ body{ font-family:var(--font); color:var(--ink); }
   background:rgba(255,255,255,0.35);
 }
 
-/* Name modal */
 .cardPanel{ padding:18px 16px 20px; }
 
 .title{
@@ -347,7 +351,6 @@ body{ font-family:var(--font); color:var(--ink); }
   outline:none;
 }
 
-/* Reply */
 .replyPanel{ background:linear-gradient(180deg, rgb(255,252,246), rgb(244,234,219)); }
 
 .replyFrame{
