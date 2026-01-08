@@ -8,7 +8,7 @@
   --font: "GarMa","나눔손글씨 가람연꽃","Nanum GarMaYeonGgoc",system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
 
   --ink: rgba(35, 24, 12, 0.94);
-  --line: rgba(92, 66, 30, 0.34);
+  --line: rgba(92, 66, 30, 0.30);
   --shadow: rgba(0,0,0,0.30);
 
   --btnA: rgba(236, 203, 124, 0.98);
@@ -94,10 +94,13 @@ body{ font-family:var(--font); color:var(--ink); }
 .btn:active{ transform: translateY(1px); box-shadow:0 7px 16px rgba(0,0,0,0.16); }
 
 /* =========================
-   Envelope (각진 + 깔끔 + “안에서 올라옴” 보장)
+   Envelope
+   - 전체 둥글게
+   - 중앙만 뾰족하게(V 포인트)
+   - 편지지는 포켓 내부에서만 보이게(갑툭튀 방지)
    ========================= */
 .envelope{
-  width:min(320px, 78vw);
+  width:min(330px, 80vw);
   aspect-ratio: 4 / 3;
   position:relative;
   perspective: 900px;
@@ -105,54 +108,56 @@ body{ font-family:var(--font); color:var(--ink); }
   isolation:isolate;
 }
 
-/* 각지게: radius 최소 */
+/* 둥근 봉투 바디 */
 .env-back{
   position:absolute; inset:0;
-  border-radius:6px;
-  border:1px solid var(--line);
+  border-radius:18px;
+  border:1px solid rgba(92,66,30,0.30);
   background:
-    radial-gradient(circle at 28% 22%, rgba(255,255,255,0.72), transparent 60%),
+    radial-gradient(circle at 28% 22%, rgba(255,255,255,0.74), transparent 60%),
     radial-gradient(circle at 75% 78%, rgba(70,45,20,0.10), transparent 65%),
     linear-gradient(180deg, rgba(252,246,236,1), rgba(236,224,206,1));
   z-index:1;
 }
 
-/* 봉투 안쪽 포켓: 여기에서만 편지지가 보임(갑툭튀 방지 핵심) */
+/* 포켓: 둥근 사각 + 중앙 V(뾰족)로 안쪽 형태를 정의 */
 .env-pocket{
   position:absolute;
   left:7%; right:7%;
   top:22%;
   bottom:12%;
+  border-radius:14px;
   overflow:hidden;
-  border-radius:4px;
   z-index:2;
   background:transparent;
+
+  /* 중앙만 뾰족: V 형태로 위쪽을 살짝 파줌 */
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0, 50% 40%, 0 0);
 }
 
-/* 편지지: 처음엔 포켓 아래로 숨겨져 있고, 열릴 때만 위로 */
+/* 편지지: 가로 더 크게(여백 최소화) + 훨씬 많이 올라옴 */
 .env-letter{
   position:absolute;
-  left:9%; right:9%;
-  bottom:-30%;
-  height:92%;
-  border-radius:6px;
+  left:4%; right:4%;   /* 가로 폭 증가 */
+  bottom:-34%;         /* 시작은 아래에 숨김 */
+  height:110%;         /* 더 큰 종이 느낌 */
+  border-radius:12px;
   border:1px solid rgba(92,66,30,0.22);
   background: var(--envLetter);
-  transform: translateY(65%);
+  transform: translateY(80%); /* 시작 프레임 확실히 숨김 */
   opacity:0;
-  transition: transform 760ms ease, opacity 200ms ease;
+  transition: transform 820ms ease, opacity 200ms ease;
 }
 
-/* 전면(각진) */
+/* 봉투 전면(둥글고 깔끔) */
 .env-front{
   position:absolute; inset:0;
-  border-radius:6px;
+  border-radius:18px;
   overflow:hidden;
   pointer-events:none;
   z-index:3;
 }
 
-/* 좌/우/하단 접힘: 단순하고 깔끔하게 */
 .env-left, .env-right{
   position:absolute;
   top:24%;
@@ -174,16 +179,18 @@ body{ font-family:var(--font); color:var(--ink); }
   clip-path: polygon(0 26%, 100% 0, 100% 100%, 0 100%);
   border-left:none;
 }
+
+/* 중앙만 뾰족하게 보이는 핵심: bottom의 V 포인트는 유지 */
 .env-bottom{
   position:absolute;
   left:0; right:0; bottom:0;
   height:58%;
   background:linear-gradient(180deg, rgba(248,241,232,1), rgba(230,216,198,1));
   border-top:1px solid rgba(92,66,30,0.20);
-  clip-path: polygon(0 26%, 50% 74%, 100% 26%, 100% 100%, 0 100%);
+  clip-path: polygon(0 26%, 50% 78%, 100% 26%, 100% 100%, 0 100%);
 }
 
-/* 플랩(각진) */
+/* 플랩(둥근 상단 + 중앙 뾰족) */
 .env-flap{
   position:absolute;
   left:0; right:0; top:0;
@@ -194,17 +201,17 @@ body{ font-family:var(--font); color:var(--ink); }
   background:linear-gradient(180deg, rgba(246,238,228,1), rgba(222,206,186,1));
   border:1px solid rgba(92,66,30,0.22);
   border-bottom:none;
-  border-radius:6px 6px 0 0;
+  border-radius:18px 18px 0 0;
   pointer-events:none;
   z-index:4;
-  clip-path: polygon(0 0, 100% 0, 50% 78%);
+  clip-path: polygon(0 0, 100% 0, 50% 80%);
 }
 
 .envelope.is-opening .env-flap{ transform: rotateX(-165deg); }
 
-/* “포켓 안에서” 올라오게: translateY를 크게 음수로 */
+/* 훨씬 많이 올라오게 */
 .envelope.is-opening .env-letter{
-  transform: translateY(-92%);
+  transform: translateY(-115%);
   opacity:1;
 }
 
@@ -318,6 +325,7 @@ body{ font-family:var(--font); color:var(--ink); }
   .btn,.input,.replyBody{ font-size:17px; }
   .form{ flex-direction:column; align-items:stretch; }
 }
+
 @media (prefers-reduced-motion: reduce){
   .env-flap,.env-letter,.backdrop,.panel,.paperViewport{ transition:none !important; }
 }
