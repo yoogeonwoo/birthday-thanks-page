@@ -33,11 +33,8 @@
   /* 3D 플랩 두께 */
   --flapThickness: 2px;
 
-  /* ✅ 힌지(축) 갭 방지용: 플랩을 윗변에 얼마나 더 겹칠지 */
-  --hingeOverlap: 2px;
-
-  /* ✅ 힌지 실(seam) 커버 높이 */
-  --hingeSealHeight: 3px;
+  /* ✅ 열린 후 떠 보임 제거용: 열린 상태에서 Z를 얼마나 당길지 */
+  --flapOpenPullZ: 4px;
 }
 
 *{ box-sizing:border-box; }
@@ -113,8 +110,8 @@ body{ font-family:var(--font); color:var(--ink); }
   pointer-events:none;
 }
 
-.btn-primary{ background:linear-gradient(180deg, var(--btnA), var(--btnB)); }
-.btn-secondary{ background:linear-gradient(180deg, var(--btnC), var(--btnD)); }
+.btn-primary{ background:linear-gradient(180deg, rgba(236, 203, 124, 0.98), rgba(214, 178, 98, 0.98)); }
+.btn-secondary{ background:linear-gradient(180deg, rgba(229, 194, 116, 0.98), rgba(200, 160, 80, 0.98)); }
 
 .btn:active{
   transform: translateY(1px);
@@ -171,6 +168,7 @@ body{ font-family:var(--font); color:var(--ink); }
   z-index:3;
 }
 
+/* 겉표지 */
 .env-cover{
   position:absolute; inset:0;
   border-radius:16px;
@@ -198,49 +196,23 @@ body{ font-family:var(--font); color:var(--ink); }
 }
 
 /* =========================
-   ✅ 3D Flap + 힌지 갭 방지
+   ✅ 3D Flap (열림 후 딱 붙기)
    ========================= */
 
 .env-flap{
   position:absolute;
-  left:0; right:0;
-  /* ✅ 윗변 쪽으로 살짝 “겹치기” */
-  top: calc(var(--hingeOverlap) * -1);
-  /* ✅ 겹친 만큼 높이도 늘려 모양 유지 */
-  height: calc(72% + var(--hingeOverlap));
+  left:0; right:0; top:0;
+  height:72%;
 
   z-index:6;
   pointer-events:none;
 
-  /* 축은 윗변 */
   transform-origin: 50% 0%;
-
   transform: rotateX(0deg);
   transition: transform 520ms ease;
 
   transform-style: preserve-3d;
   will-change: transform;
-}
-
-/* ✅ 힌지 실(seam) 커버: 회전 중 미세 틈 가림 */
-.env-flap::before{
-  content:"";
-  position:absolute;
-  left:0; right:0;
-  top: calc(var(--hingeOverlap) - 1px);
-  height: var(--hingeSealHeight);
-
-  background: var(--envFlap);
-  border-left:1px solid rgba(92,66,30,0.28);
-  border-right:1px solid rgba(92,66,30,0.28);
-
-  /* 봉투 윗변 라인과 자연스럽게 */
-  border-top:1px solid rgba(92,66,30,0.28);
-  border-radius:16px 16px 0 0;
-
-  /* seam은 항상 위 */
-  transform: translateZ(6px);
-  pointer-events:none;
 }
 
 /* 공통 면 */
@@ -262,14 +234,19 @@ body{ font-family:var(--font); color:var(--ink); }
   clip-path: polygon(0 0, 100% 0, 50% 78%);
 }
 
-/* 뒷면(열림): 열렸을 때도 ▲로 보이도록 반전 삼각형 */
+/* 뒷면(열림): 열려도 ▲ */
 .flap-back{
   transform: rotateX(180deg) translateZ(calc(var(--flapThickness) / 2));
   clip-path: polygon(0 78%, 100% 78%, 50% 0);
 }
 
-/* Opening */
-.envelope.is-opening .env-flap{ transform: rotateX(-180deg); }
+/* Opening
+   - rotateX는 180에 가깝게(깊이 버그 최소화)
+   - translateZ(음수)로 봉투 평면에 “붙여버림” */
+.envelope.is-opening .env-flap{
+  transform: rotateX(-179.9deg) translateZ(calc(var(--flapOpenPullZ) * -1));
+}
+
 .envelope.is-opening .env-letter{
   transform: translateY(-12%);
   opacity:1;
@@ -394,7 +371,6 @@ body{ font-family:var(--font); color:var(--ink); }
   pointer-events:none;
 }
 
-/* 제목이 테이프보다 앞으로 */
 .replyFrame .title{
   position:relative;
   z-index:3;
