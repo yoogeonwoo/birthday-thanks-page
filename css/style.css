@@ -19,22 +19,16 @@
   --paperA: rgb(255, 252, 246);
   --paperB: rgb(244, 234, 219);
 
-  /* 편지지 */
   --letter: #E1BF72;
 
-  /* 봉투 */
   --envBack: #FFFFFF;
   --envFlap: #EDE4D6;
 
-  /* 겉표지 */
   --envCoverTop: rgb(252, 247, 238);
   --envCoverBottom: rgb(244, 235, 222);
 
-  /* 3D 플랩 두께 */
+  /* 플랩 기본 두께(닫힘/열림 중에는 유지) */
   --flapThickness: 2px;
-
-  /* ✅ 열린 후 떠 보임 제거용: 열린 상태에서 Z를 얼마나 당길지 */
-  --flapOpenPullZ: 4px;
 }
 
 *{ box-sizing:border-box; }
@@ -110,8 +104,8 @@ body{ font-family:var(--font); color:var(--ink); }
   pointer-events:none;
 }
 
-.btn-primary{ background:linear-gradient(180deg, rgba(236, 203, 124, 0.98), rgba(214, 178, 98, 0.98)); }
-.btn-secondary{ background:linear-gradient(180deg, rgba(229, 194, 116, 0.98), rgba(200, 160, 80, 0.98)); }
+.btn-primary{ background:linear-gradient(180deg, var(--btnA), var(--btnB)); }
+.btn-secondary{ background:linear-gradient(180deg, var(--btnC), var(--btnD)); }
 
 .btn:active{
   transform: translateY(1px);
@@ -168,7 +162,6 @@ body{ font-family:var(--font); color:var(--ink); }
   z-index:3;
 }
 
-/* 겉표지 */
 .env-cover{
   position:absolute; inset:0;
   border-radius:16px;
@@ -196,7 +189,7 @@ body{ font-family:var(--font); color:var(--ink); }
 }
 
 /* =========================
-   ✅ 3D Flap (열림 후 딱 붙기)
+   Flap (3D + 열린 후 “딱 붙기”)
    ========================= */
 
 .env-flap{
@@ -215,7 +208,7 @@ body{ font-family:var(--font); color:var(--ink); }
   will-change: transform;
 }
 
-/* 공통 면 */
+/* 플랩 공통 면 */
 .flap-face{
   position:absolute;
   inset:0;
@@ -226,6 +219,7 @@ body{ font-family:var(--font); color:var(--ink); }
   border-radius:16px 16px 0 0;
 
   backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
 }
 
 /* 앞면(닫힘): ▲ */
@@ -240,11 +234,15 @@ body{ font-family:var(--font); color:var(--ink); }
   clip-path: polygon(0 78%, 100% 78%, 50% 0);
 }
 
-/* Opening
-   - rotateX는 180에 가깝게(깊이 버그 최소화)
-   - translateZ(음수)로 봉투 평면에 “붙여버림” */
+/* 열리는 순간: 회전 */
 .envelope.is-opening .env-flap{
-  transform: rotateX(-179.9deg) translateZ(calc(var(--flapOpenPullZ) * -1));
+  transform: rotateX(-179.95deg);
+}
+
+/* ✅ 열린 뒤 “붙게” 만드는 핵심:
+   열린 상태에서는 Z 두께를 0으로 만들어 떠 보임(공간)을 제거 */
+.envelope.is-opening{
+  --flapThickness: 0px;
 }
 
 .envelope.is-opening .env-letter{
@@ -287,7 +285,6 @@ body{ font-family:var(--font); color:var(--ink); }
 .modal.is-open .backdrop{ opacity:1; }
 .modal.is-open .panel{ opacity:1; transform: translateY(0) scale(1); }
 
-/* X 버튼 */
 .close{
   position:absolute; top:10px; right:12px;
   border:1px solid rgba(60,40,15,0.22);
@@ -371,6 +368,7 @@ body{ font-family:var(--font); color:var(--ink); }
   pointer-events:none;
 }
 
+/* 제목이 테이프보다 앞으로 */
 .replyFrame .title{
   position:relative;
   z-index:3;
