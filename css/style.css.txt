@@ -1,0 +1,102 @@
+:root{
+  --ink:#2a1c10;
+  --line:#6b4a24;
+
+  /* 버튼 색상: 기존보다 아주 살짝 밝게 */
+  --btnA:#e2bc63;
+  --btnB:#d3a94c;
+  --btnC:#dfb35c;
+  --btnD:#c99a42;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;height:100%;font-family:"나눔손글씨 가람연꽃",sans-serif;}
+
+.app{position:relative;min-height:100vh;}
+.bg{
+  position:absolute;inset:0;
+  background:url("../assets/bg.jpg") center/cover no-repeat;
+}
+.grain{
+  position:absolute;inset:0;
+  pointer-events:none;
+  opacity:.15;
+}
+
+.home{
+  position:relative;
+  z-index:2;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:20px;
+}
+
+.envelope{
+  position:relative;
+  width:280px;
+  height:190px;
+}
+.env-body{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(#fff,#f2e7d8);
+  border:1px solid var(--line);
+  border-radius:10px;
+}
+.env-flap{
+  position:absolute;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:linear-gradient(#f7efe3,#e8dccb);
+  clip-path:polygon(0 0,100% 0,50% 55%);
+  border-top:1px solid var(--line);
+}
+
+.actions{
+  width:320px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.btn{
+  padding:12px;
+  border-radius:999px;
+  border:1px solid #7a5a2e;
+  font-size:18px;
+  cursor:pointer;
+}
+.btn-primary{background:linear-gradient(var(--btnA),var(--btnB));}
+.btn-secondary{background:linear-gradient(var(--btnC),var(--btnD));}
+
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:10;
+}
+.modal.is-open{display:block;}
+.backdrop{position:absolute;inset:0;background:rgba(0,0,0,.5);}
+.panel{
+  position:relative;
+  margin:6vh auto;
+  width:90%;
+  max-width:720px;
+  background:#fff;
+  padding:20px;
+  border-radius:16px;
+}
+.paper{
+  background:url("../assets/paper.jpg") center/cover no-repeat;
+  min-height:70vh;
+}
+.close{
+  position:absolute;
+  top:10px;right:10px;
+}
+.title{margin-top:40px;}
+.content{line-height:1.8;}
+.input{width:100%;padding:12px;margin:10px 0;}
