@@ -20,10 +20,7 @@
     btnOpenLetter, btnOpenInbox, btnCheckName,
     nameInput, replyTitle, replyBody
   ];
-  if (required.some(el => !el)) {
-    console.warn("[init] required element missing");
-    return;
-  }
+  if (required.some(el => !el)) return;
 
   let repliesCache = null;
   let isAnimating = false;
@@ -99,7 +96,6 @@
   };
 
   btnCheckName.addEventListener("click", () => { void tryOpenReply(); });
-
   nameInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") void tryOpenReply();
   });
