@@ -30,8 +30,11 @@
   /* 플랩 밀착 */
   --flapAttachY: 34px;
 
-  /* ✅ 핵심: 편지지를 3D에서 앞으로 당기는 깊이 */
+  /* 편지지를 3D에서 앞으로 당기는 깊이 */
   --letterZ: 60px;
+
+  /* ✅ 추가: 플랩을 열렸을 때 Z축으로 뒤로 보내기(플랩이 편지지를 덮지 않게) */
+  --flapOpenZ: -120px;
 }
 
 *{ box-sizing:border-box; }
@@ -142,7 +145,7 @@ body{ font-family:var(--font); color:var(--ink); }
   z-index:1;
 }
 
-/* ✅ 편지지: z-index + translateZ 로 “플랩보다 앞” 강제 */
+/* ✅ 편지지: 앞으로(+) 올라오게 */
 .env-letter{
   position:absolute;
   left:8%; right:8%;
@@ -157,7 +160,12 @@ body{ font-family:var(--font); color:var(--ink); }
 
   transition: transform 700ms ease, opacity 260ms ease;
   pointer-events:none;
+
+  /* z-index는 보조, 3D에서는 translateZ가 우선될 수 있음 */
   z-index:6;
+
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
 }
 
 .env-front{
@@ -237,10 +245,10 @@ body{ font-family:var(--font); color:var(--ink); }
 }
 
 /* ✅ 열기:
-   - 플랩은 밀착 + 뒤로 접힘
-   - 편지지는 translateZ(+)로 플랩보다 앞에 고정 */
+   - 플랩은 밀착 + 뒤로 접힘 + Z축으로 뒤로 이동(가림 방지)
+   - 편지지는 translateZ(+)로 앞으로 */
 .envelope.is-opening .env-flap{
-  transform: translateY(var(--flapAttachY)) rotateX(-179.95deg);
+  transform: translateY(var(--flapAttachY)) rotateX(-179.95deg) translateZ(var(--flapOpenZ));
 }
 
 .envelope.is-opening .env-letter{
