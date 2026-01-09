@@ -30,10 +30,11 @@
   /* 플랩 밀착 */
   --flapAttachY: 34px;
 
-  /* ✅ 편지지/겉표지/플랩 3D 레이어 제어 */
-  --frontZ: 90px;      /* 겉표지(봉투 앞면)는 항상 최전면 */
-  --letterZ: 70px;     /* 편지지는 겉표지보다 살짝 뒤 */
-  --flapOpenZ: -140px; /* 플랩은 열릴 때 확실히 뒤로 */
+  /* 편지지를 3D에서 앞으로 당기는 깊이 */
+  --letterZ: 60px;
+
+  /* ✅ 추가: 플랩을 열렸을 때 Z축으로 뒤로 보내기(플랩이 편지지를 덮지 않게) */
+  --flapOpenZ: -120px;
 }
 
 *{ box-sizing:border-box; }
@@ -142,10 +143,9 @@ body{ font-family:var(--font); color:var(--ink); }
   border:1px solid rgba(92,66,30,0.28);
   background: var(--envBack);
   z-index:1;
-  transform: translateZ(0px);
 }
 
-/* ✅ 편지지 */
+/* ✅ 편지지: 앞으로(+) 올라오게 */
 .env-letter{
   position:absolute;
   left:8%; right:8%;
@@ -161,24 +161,19 @@ body{ font-family:var(--font); color:var(--ink); }
   transition: transform 700ms ease, opacity 260ms ease;
   pointer-events:none;
 
-  /* 보조: 3D에서는 translateZ가 우선될 수 있음 */
+  /* z-index는 보조, 3D에서는 translateZ가 우선될 수 있음 */
   z-index:6;
 
   transform-style: preserve-3d;
   will-change: transform, opacity;
 }
 
-/* ✅ 봉투 앞면(겉표지): 편지지보다 항상 앞 */
 .env-front{
   position:absolute; inset:0;
   border-radius:16px;
   overflow:hidden;
   pointer-events:none;
-
-  z-index:10;
-  transform: translateZ(var(--frontZ));
-  transform-style: preserve-3d;
-  will-change: transform;
+  z-index:3;
 }
 
 .env-cover{
@@ -217,10 +212,10 @@ body{ font-family:var(--font); color:var(--ink); }
   height:72%;
   pointer-events:none;
 
-  z-index:9;
+  z-index:4;
 
   transform-origin: 50% 0%;
-  transform: translateY(0) rotateX(0deg) translateZ(0px);
+  transform: translateY(0) rotateX(0deg);
   transition: transform 520ms ease;
 
   transform-style: preserve-3d;
@@ -249,9 +244,9 @@ body{ font-family:var(--font); color:var(--ink); }
   transform: rotateX(180deg);
 }
 
-/* ✅ 열기 상태:
-   - 플랩: 뒤로 접고 Z축으로 확실히 뒤로
-   - 편지지: 앞으로 나오되 겉표지(--frontZ)보다 살짝 뒤 */
+/* ✅ 열기:
+   - 플랩은 밀착 + 뒤로 접힘 + Z축으로 뒤로 이동(가림 방지)
+   - 편지지는 translateZ(+)로 앞으로 */
 .envelope.is-opening .env-flap{
   transform: translateY(var(--flapAttachY)) rotateX(-179.95deg) translateZ(var(--flapOpenZ));
 }
@@ -260,13 +255,6 @@ body{ font-family:var(--font); color:var(--ink); }
   transform: translateY(-45%) translateZ(var(--letterZ));
   opacity:1;
 }
-
-/* (선택) 안전장치: 편지지 Z를 항상 겉표지보다 낮게 유지하고 싶으면 아래로 교체
-.envelope.is-opening .env-letter{
-  transform: translateY(-45%) translateZ(calc(var(--frontZ) - 20px));
-  opacity:1;
-}
-*/
 
 /* =========================
    Modal
